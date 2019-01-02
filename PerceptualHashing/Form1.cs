@@ -8,6 +8,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
+using Shipwreck.Phash;
+using Shipwreck.Phash.Bitmaps;
+using System.Collections;
 
 namespace PerceptualHashing
 {
@@ -169,6 +172,35 @@ namespace PerceptualHashing
             return hash;
         }
 
+        private void btnpHash_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                var bitmapPrvaSlika = img1;
+                var hashPrvaSlika = ImagePhash.ComputeDigest(bitmapPrvaSlika.ToLuminanceImage());
+                var bitmapDrugaSlika = img2;
+                var hashDrugaSlika = ImagePhash.ComputeDigest(bitmapDrugaSlika.ToLuminanceImage());
+                var score = ImagePhash.GetCrossCorrelation(hashPrvaSlika, hashDrugaSlika);
+                byte[] hashPrvaSlikaBytes = Encoding.ASCII.GetBytes(hashPrvaSlika.ToString());
+                byte[] hashDrugaSlikaBytes = Encoding.ASCII.GetBytes(hashDrugaSlika.ToString());
+                var prvaBitArray = new BitArray(hashPrvaSlikaBytes);
+                var drugaBitArray = new BitArray(hashDrugaSlikaBytes);
+                string prvaBytes = DohvatiBitove(prvaBitArray);
+                string drugaBytes = DohvatiBitove(drugaBitArray);
+                label1.Text = prvaBytes;
+                label2.Text = drugaBytes;
+                var slicnost = ImagePhash.GetCrossCorrelation(hashPrvaSlika, hashDrugaSlika)*100;
+                razlika(prvaBytes,drugaBytes);
+                label5.Text = "Sličnost je: " + ((int)slicnost).ToString() + "%";
+
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Treba prvo učitati slike!", "Upozorenje!", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            
+        }
+
         private void btndHash_Click(object sender, EventArgs e)
         {
             try
@@ -210,5 +242,14 @@ namespace PerceptualHashing
             label4.Text = razliciti.ToString();
         }
       
+        public string DohvatiBitove(BitArray bitArray)
+        {
+            string output = ""; 
+            for (int i = 0; i < bitArray.Length; i++)
+            {
+                output += bitArray.Get(i) ? "1" : "0";
+            }
+            return output;
+        }
     }
 }
